@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
 // Data
 import mockData from "../assets/data.json";
@@ -15,19 +15,44 @@ import styles from "./Dashboard.module.css";
 import Card from "../component/card/Card";
 
 const Dashboard = () => {
-  const [currency, setCurrency] = useState("EUR");
-  const [searchText, setSearchText] = useState("");
-  const [selectedOrderDetails, setSelectedOrderDetails] = useState({});
-  const [selectedOrderTimeStamps, setSelectedOrderTimeStamps] = useState({});
+  const [currency, setCurrency] = useState("USD");
+  
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState(
+    mockData.results[0].executionDetails
+  );
+  const [selectedOrderTimeStamps, setSelectedOrderTimeStamps] = useState( 
+    timestamps.results[0].timestamps
+  );
+  const [orders,setOrders]=useState(mockData.results.length);
+  const [searchQuery, setSearchQuery]=useState('')
+  const fn1 =(idx)=>{
+    
+    mockData.results.map((id)=>{
+      id["&id"] ===idx && setSelectedOrderDetails(id.executionDetails)
+    })
+    timestamps.results.map((id)=>{
+      id["&id"] ===idx && setSelectedOrderTimeStamps(id.timestamps)
+    });
+  }
+  const [filteredData ,setFilterData]=useState( mockData.results)
+  
+  useEffect(()=>{
+    setFilterData(mockData.results.filter((item) =>
+    item["&id"].toLowerCase().includes(searchQuery.toLowerCase())
+  ));
+  },[searchQuery])
+  
 
   return (
     <div>
       <div className={styles.header}>
-        <HeaderTitle primaryTitle="Orders" secondaryTitle="5 orders" />
+        <HeaderTitle primaryTitle="Orders" secondaryTitle={orders} />
         <div className={styles.actionBox}>
           <Search
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => {
+               setSearchQuery(e.target.value)
+               }}
           />
           <Dropdown
             options={["GBP", "USD", "JPY", "EUR"]}
@@ -47,7 +72,7 @@ const Dashboard = () => {
             title="Selected Order Timestamps"
           />
         </div>
-        <List rows={mockData.results} />
+        <List rows={filteredData} fnx={fn1} val={currency} />
       </div>
     </div>
   );
